@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>À l'affiche | CinéFilm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap');
+        :root { --cine-blue: #003366; --cine-red: #e30613; --cine-gray: #f4f4f4; }
+        body { background-color: var(--cine-gray); color: #333; font-family: 'Montserrat', sans-serif; }
+        .bg-cine-blue { background-color: var(--cine-blue); }
+        .text-cine-red { color: var(--cine-red); }
+        .movie-card { background: white; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.3s; overflow: hidden; }
+        .movie-card:hover { transform: translateY(-8px); }
+    </style>
+</head>
+<body>
+
+    <nav class="bg-cine-blue text-white shadow-xl sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-3xl font-black italic tracking-tighter uppercase cursor-pointer" onclick="window.location.href='index.html'">
+                CINÉ<span class="text-cine-red">FILM</span>
+            </h1>
+            <div class="flex gap-8 font-bold text-xs uppercase tracking-widest">
+                <a href="index.html" class="hover:text-cine-red transition">Accueil</a>
+                <a href="recent.html" class="text-cine-red">À l'affiche</a>
+                <a href="upcoming.html" class="hover:text-cine-red transition">Bientôt</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        <div class="border-l-8 border-cine-red pl-6 mb-12">
+            <h2 class="text-4xl font-black text-cine-blue uppercase italic">En ce moment <span class="text-cine-red">en salles</span></h2>
+            <p class="text-gray-500 uppercase text-xs font-bold mt-2 tracking-widest">Toutes les séances nationales</p>
+        </div>
+
+        <div id="recentGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10">
+            </div>
+
+        <div class="flex justify-center mt-16">
+            <button id="loadMore" class="bg-cine-blue text-white px-10 py-4 font-black uppercase text-xs rounded hover:bg-cine-red transition shadow-lg">
+                Charger plus de films
+            </button>
+        </div>
+    </main>
+
+    <script>
+        const API_KEY = '65ca4aaf481637e3d3feb421767f11a2';
+        const IMG_URL = 'https://image.tmdb.org/t/p/w500'; // Correction ici (w500 au lieu de /w500)
+        let page = 1;
+
+        async function fetchRecent() {
+            try {
+                const res = await fetch(`https://api.themoviedb.org/3/movie/now_playing?api_key=${API_KEY}&language=fr-FR&page=${page}&region=FR`);
+                const data = await res.json();
+                const grid = document.getElementById('recentGrid');
+                
+                data.results.forEach(movie => {
+                    // Vérification si l'image existe
+                    const poster = movie.poster_path ? IMG_URL + movie.poster_path : 'https://via.placeholder.com/500x750?text=Image+Non+Disponible';
+                    
+                    grid.innerHTML += `
+                        <div class="movie-card cursor-pointer group" onclick="window.location.href='movie.html?id=${movie.id}'">
+                            <div class="relative overflow-hidden aspect-[2/3]">
+                                <img src="${poster}" class="w-full h-full object-cover">
+                            </div>
+                            <div class="p-5">
+                                <h4 class="font-black text-[11px] text-cine-blue uppercase h-10 overflow-hidden mb-2">${movie.title}</h4>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] bg-cine-blue text-white px-2 py-1 rounded font-bold">⭐ ${movie.vote_average.toFixed(1)}</span>
+                                    <span class="text-[9px] text-gray-400 font-bold">${movie.release_date.split('-')[0]}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                console.error("Erreur lors du chargement des films :", error);
+            }
+        }
+
+        document.getElementById('loadMore').onclick = () => { 
+            page++; 
+            fetchRecent(); 
+        };
+
+        // Lancement initial
+        fetchRecent();
+    </script>
+</body>
+</html>

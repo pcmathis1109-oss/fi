@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mes Billets | CinéFilm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="app.js"></script>
+</head>
+<body class="bg-slate-900 text-white p-8">
+    <div class="max-w-md mx-auto">
+        <header class="flex justify-between items-center mb-12">
+            <h1 id="userTitle" class="text-2xl font-black italic text-red-600 uppercase tracking-tighter">Mon Club</h1>
+            <a href="index.html" class="bg-slate-800 px-4 py-2 rounded-full text-[10px] font-bold border border-white/10 uppercase">Boutique</a>
+        </header>
+
+        <div id="tickets" class="space-y-8"></div>
+    </div>
+
+    <script>
+        const orders = readProtectedData('orders') || [];
+        const user = readProtectedData('user_connected') || "Membre";
+        document.getElementById('userTitle').innerText = `CLUB DE ${user.split('@')[0]}`;
+        
+        const container = document.getElementById('tickets');
+
+        orders.forEach((o, i) => {
+            const id = `qr-${i}`;
+            container.innerHTML += `
+                <div class="bg-white text-slate-900 p-8 rounded-[40px] shadow-2xl relative">
+                    <div class="absolute top-0 right-10 bg-red-600 text-white text-[8px] font-black px-4 py-2 rounded-b-xl uppercase">Officiel</div>
+                    <h2 class="font-black text-xl mb-6 uppercase text-blue-900 leading-tight">${o.movie}</h2>
+                    <div id="${id}" class="flex justify-center p-4 bg-gray-50 rounded-3xl mb-4 border border-gray-100"></div>
+                    <p class="text-[9px] text-center text-gray-400 font-bold uppercase italic tracking-widest">Scannez pour validation</p>
+                </div>`;
+
+            // On génère le code spécial que le scanner reconnaît
+            setTimeout(() => { 
+                new QRCode(document.getElementById(id), { 
+                    text: `VALID_TICKET_${o.movie}`, 
+                    width: 160, 
+                    height: 160 
+                }); 
+            }, 100);
+        });
+    </script>
+</body>
+</html>

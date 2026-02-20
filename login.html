@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Connexion | CinéFilm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="app.js"></script>
+</head>
+<body class="bg-slate-900 h-screen flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8">
+        <h1 class="text-3xl font-black text-center mb-8 uppercase text-blue-900">Connexion <span class="text-red-600">Club</span></h1>
+        <form id="loginForm" class="space-y-6">
+            <input type="email" id="email" placeholder="Email" required class="w-full border-2 p-3 rounded-xl outline-none focus:border-red-600 text-slate-900">
+            <input type="password" id="pass" placeholder="Mot de passe" required class="w-full border-2 p-3 rounded-xl outline-none focus:border-red-600 text-slate-900">
+            <button type="submit" class="w-full bg-red-600 text-white py-4 rounded-xl font-bold uppercase hover:scale-95 transition-all shadow-lg">Entrer au Club</button>
+        </form>
+    </div>
+    <script>
+        document.getElementById('loginForm').onsubmit = (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            localStorage.setItem('user_session', protectData({ email: email, pass: document.getElementById('pass').value }));
+            localStorage.setItem('user_connected', protectData(email));
+            window.location.href = 'index.html';
+        };
+    </script>
+</body>
+</html>
