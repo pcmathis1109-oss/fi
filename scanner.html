@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CinéScan Elite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+        .scan-line { animation: scan 2s linear infinite; shadow: 0 0 15px #ff0000; }
+        #reader__dashboard { display: none !important; }
+        #reader video { object-fit: cover !important; border-radius: 30px; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body class="bg-[#050505] text-white h-screen flex flex-col overflow-hidden font-sans">
+
+    <div class="pt-12 pb-4 px-6 flex justify-between items-center bg-black/40 backdrop-blur-md border-b border-white/5">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-600/20">
+                <span class="font-black italic text-xl">C</span>
+            </div>
+            <div>
+                <h1 class="text-sm font-black tracking-widest uppercase italic leading-none">CinéScan <span class="text-red-600">Elite</span></h1>
+                <p class="text-[8px] text-gray-500 font-bold uppercase mt-1 tracking-[0.2em]">Terminal Securisé</p>
+            </div>
+        </div>
+        <div class="px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 flex items-center gap-2">
+            <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+            <span class="text-[8px] font-bold text-green-500 uppercase tracking-widest">Live API</span>
+        </div>
+    </div>
+
+    <main class="flex-1 relative flex flex-col items-center justify-center p-8">
+        <div class="relative w-full max-w-xs group">
+            <div class="absolute -top-2 -left-2 w-8 h-8 border-t-4 border-l-4 border-red-600 z-10 rounded-tl-xl"></div>
+            <div class="absolute -top-2 -right-2 w-8 h-8 border-t-4 border-r-4 border-red-600 z-10 rounded-tr-xl"></div>
+            <div class="absolute -bottom-2 -left-2 w-8 h-8 border-b-4 border-l-4 border-red-600 z-10 rounded-bl-xl"></div>
+            <div class="absolute -bottom-2 -right-2 w-8 h-8 border-b-4 border-r-4 border-red-600 z-10 rounded-br-xl"></div>
+            
+            <div id="reader" class="w-full aspect-square rounded-[30px] overflow-hidden bg-zinc-900 border border-white/10 shadow-2xl relative">
+                <div class="scan-line absolute left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent z-20"></div>
+            </div>
+        </div>
+
+        <p class="mt-12 text-gray-500 text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">Alignez le QR Code</p>
+    </main>
+
+    <div id="fullOverlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center hidden backdrop-blur-3xl transition-all duration-500">
+        <div id="statusCard" class="glass w-[85%] p-10 rounded-[40px] flex flex-col items-center text-center shadow-2xl transform transition-all duration-500 scale-90">
+            <div id="iconBox" class="text-8xl mb-6 filter drop-shadow-lg"></div>
+            <h1 id="mainStatus" class="text-4xl font-black uppercase italic tracking-tighter mb-2"></h1>
+            <div class="h-px w-20 bg-white/20 mb-4"></div>
+            <p id="movieName" class="text-lg font-medium opacity-80 uppercase tracking-wide"></p>
+            <p id="ticketId" class="mt-4 text-[9px] font-mono opacity-40"></p>
+        </div>
+    </div>
+
+    <audio id="beepOk" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
+    <audio id="beepError" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
+
+    <script>
+        const API_URL = "https://sheetdb.io/api/v1/ffd07sknkm202";
+        let html5QrcodeScanner;
+
+        async function onScanSuccess(decodedText) {
+            const overlay = document.getElementById('fullOverlay');
+            const card = document.getElementById('statusCard');
+            const icon = document.getElementById('iconBox');
+            const status = document.getElementById('mainStatus');
+            const movie = document.getElementById('movieName');
+            const tid = document.getElementById('ticketId');
+            
+            html5QrcodeScanner.pause();
+            
+            try {
+                const response = await fetch(`${API_URL}/search?ticket_id=${encodeURIComponent(decodedText)}`);
+                const data = await response.json();
+
+                overlay.classList.remove('hidden');
+                setTimeout(() => card.classList.remove('scale-90'), 50);
+
+                if (data.length > 0 && data[0].status === "VALIDE") {
+                    overlay.style.backgroundColor = "rgba(22, 101, 52, 0.9)";
+                    icon.innerText = "✦"; 
+                    icon.className = "text-8xl mb-6 text-green-400 animate-bounce";
+                    status.innerText = "ACCÈS AUTORISÉ";
+                    status.className = "text-4xl font-black uppercase italic text-green-400";
+                    movie.innerText = data[0].movie;
+                    tid.innerText = "ID: " + decodedText;
+                    document.getElementById('beepOk').play();
+                } else {
+                    overlay.style.backgroundColor = "rgba(153, 27, 27, 0.9)";
+                    icon.innerText = "✕";
+                    icon.className = "text-8xl mb-6 text-red-500 animate-shake";
+                    status.innerText = "BILLET REFUSÉ";
+                    status.className = "text-4xl font-black uppercase italic text-red-500";
+                    movie.innerText = "NON RÉPERTORIÉ";
+                    tid.innerText = "CHECK FAILED";
+                    document.getElementById('beepError').play();
+                }
+            } catch (e) {
+                console.error(e);
+                html5QrcodeScanner.resume();
+            }
+
+            setTimeout(() => {
+                card.classList.add('scale-90');
+                overlay.classList.add('hidden');
+                html5QrcodeScanner.resume();
+            }, 3500);
+        }
+
+        function init() {
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
+                fps: 30, 
+                qrbox: {width: 280, height: 280},
+                aspectRatio: 1.0
+            });
+            html5QrcodeScanner.render(onScanSuccess);
+        }
+
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

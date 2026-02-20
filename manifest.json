@@ -1,0 +1,16 @@
+{
+  "name": "CinéScan Pro Elite",
+  "short_name": "CinéScan",
+  "start_url": "scanner.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/862/862961.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
